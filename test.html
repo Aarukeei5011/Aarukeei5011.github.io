@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Pong</title>
+    <style>
+        canvas {
+            background: black;
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pong" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('pong');
+        const ctx = canvas.getContext('2d');
+
+        const paddleWidth = 10, paddleHeight = 100, ballSize = 10;
+        let playerPaddle = { x: 10, y: canvas.height / 2 - paddleHeight / 2 };
+        let aiPaddle = { x: canvas.width - 20, y: canvas.height / 2 - paddleHeight / 2 };
+        let ball = { x: canvas.width / 2, y: canvas.height / 2, dx: 4, dy: 2 };
+
+        function drawRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, width, height);
+        }
+
+        function drawBall(x, y, size, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, size, size);
+        }
+
+        function moveAiPaddle() {
+            const paddleCenter = aiPaddle.y + paddleHeight / 2;
+            if (ball.y < paddleCenter - 20) {
+                aiPaddle.y -= 4;
+            } else if (ball.y > paddleCenter + 20) {
+                aiPaddle.y += 4;
+            }
+            aiPaddle.y = Math.max(0, Math.min(canvas.height - paddleHeight, aiPaddle.y));
+        }
+
+        function moveBall() {
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            if (ball.y <= 0 || ball.y >= canvas.height - ballSize) {
+                ball.dy = -ball.dy; // Bounce on top/bottom walls
+            }
+
+            if (ball.x <= playerPaddle.x + paddleWidth &&
+                ball.y >= playerPaddle.y &&
+                ball.y <= playerPaddle.y + paddleHeight) {
+                ball.dx = -ball.dx; // Bounce on player paddle
+            } else if (ball.x >= aiPaddle.x &&
+                ball.y >= aiPaddle.y &&
+                ball.y <= aiPaddle.y + paddleHeight) {
+                ball.dx = -ball.dx; // Bounce on AI paddle
+            }
+
+            if (ball.x < 0 || ball.x > canvas.width) {
+                ball.x = canvas.width / 2;
+                ball.y = canvas.height / 2;
+                ball.dx = 4 * (Math.random() < 0.5 ? -1 : 1);
+                ball.dy = 2 * (Math.random() < 0.5 ? -1 : 1);
+            }
+        }
+
+        function render() {
+            drawRect(0, 0, canvas.width, canvas.height, 'black');
+            drawRect(playerPaddle.x, playerPaddle.y, paddleWidth, paddleHeight, 'white');
+            drawRect(aiPaddle.x, aiPaddle.y, paddleWidth, paddleHeight, 'white');
+            drawBall(ball.x, ball.y, ballSize, 'white');
+        }
+
+        function gameLoop() {
+            render();
+            moveBall();
+            moveAiPaddle();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowUp') playerPaddle.y -= 10;
+            if (e.key === 'ArrowDown') playerPaddle.y += 10;
+            playerPaddle.y = Math.max(0, Math.min(canvas.height - paddleHeight, playerPaddle.y));
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
